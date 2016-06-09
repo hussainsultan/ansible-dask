@@ -1,5 +1,3 @@
-miniconda_default_pyton_version: 3.5
-anaconda_version: 3
 ansible_architecture: x86_64
 anaconda_home: /opt/anaconda
 my_remote_tmp: /tmp
@@ -15,4 +13,4 @@ miniconda_environments:
 
 miniconda_installer:
   url: 'http://repo.continuum.io/miniconda'
-  file: 'Miniconda3-3.0.0-Linux-x86_64.sh'
+  file: 'Miniconda3-latest-Linux-x86_64.sh'
