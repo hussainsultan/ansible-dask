@@ -7,16 +7,12 @@
   stat: path={{ miniconda_install_dir }}
   register: miniconda_check
 
-- name: Download Anaconda python from S3 bucket
-  shell: aws s3 cp s3://{{ s3_bucket }}/{{miniconda_package}} {{ my_remote_tmp }}/{{ miniconda_package }}
-  register: miniconda_downloaded
-  when: miniconda_check.stat.isdir is not defined
-
 - name: download miniconda installer
   get_url:
       url={{ miniconda_installer.url }}/{{ miniconda_installer.file }}
       dest={{ my_remote_tmp }}/{{ miniconda_package }}
       mode=0755
+  when: miniconda_check.stat.isdir is not defined
 
 - name: Set executable permissions
   file: path={{ my_remote_tmp }}/{{ miniconda_package }} mode=0755
