@@ -1,0 +1,20 @@
+- hosts: all
+  roles:
+    - dask-miniconda
+
+- hosts: master
+  tasks:
+  - name: enable dscheduler
+    sudo: yes
+    service:
+      name: dscheduler
+      enabled: yes
+
+- hosts: worker
+  sudo: yes
+  tasks:
+  - name: enable dworker
+    service:
+      name: dworker
+      enabled: yes
+

@@ -1,0 +1,60 @@
+---
+- set_fact:
+     miniconda_package: Miniconda3-latest-Linux-x86_64.sh
+     miniconda_install_dir: "{{ miniconda_home }}/miniconda{{ python_version }}.{{ miniconda_version }}"
+
+- name: stat the install direcotry
+  stat: path={{ miniconda_install_dir }}
+  register: miniconda_check
+
+- name: Download Anaconda python from S3 bucket
+  shell: aws s3 cp s3://{{ s3_bucket }}/{{miniconda_package}} {{ my_remote_tmp }}/{{ miniconda_package }}
+  register: miniconda_downloaded
+  when: miniconda_check.stat.isdir is not defined
+
+- name: download miniconda installer
+  get_url:
+      url={{ miniconda_installer.url }}/{{ miniconda_installer.file }}
+      dest={{ my_remote_tmp }}/{{ miniconda_package }}
+      mode=0755
+
+- name: Set executable permissions
+  file: path={{ my_remote_tmp }}/{{ miniconda_package }} mode=0755
+  when: miniconda_check.stat.isdir is not defined
+
+- name: execute downloaded items
+  shell: "{{ my_remote_tmp }}/{{ miniconda_package }} -b -p {{ miniconda_path}}
+         creates={{ miniconda_install_dir }}
+         executable=/bin/bash"
+  when: miniconda_downloaded|success
+  ignore_errors: yes
+  register: miniconda_cleanup
+
+- name: cleanup the miniconda install script
+  file: name={{ my_remote_tmp }}/{{ miniconda_package }} state=absent
+  when: miniconda_cleanup|success
+
+- name: create miniconda environments
+  command: '{{ miniconda_path }}/bin/conda create --yes -n {{ item.name }} python=3.5 {{ item.pkgs }}
+      creates={{ miniconda_path }}/envs/{{ item.name }}'
+  register: miniconda_venv_created
+  with_items: miniconda_environments
+
+- name: deploy dscheduler service
+  sudo: yes
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - src: dscheduler.service.j2
+      dest: /usr/lib/systemd/system/dscheduler.service
+
+- name: deploy dworker service
+  sudo: yes
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - src: dworker.service.j2
+      dest: /usr/lib/systemd/system/dworker.service
+
