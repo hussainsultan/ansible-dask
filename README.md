@@ -14,6 +14,7 @@ Default variables (in roles/defauls/main.yml):
 * python_version
 * miniconda_environments
 * miniconda_installer
+
 License
 -------
 
